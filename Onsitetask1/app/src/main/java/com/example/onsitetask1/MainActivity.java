@@ -1,9 +1,13 @@
 package com.example.onsitetask1;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -17,6 +21,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+    private int STORAGE_PERMISSION_CODE = 1;
 
     private ArrayList<DirectoryCard> filesList;
     private RecyclerView recyclerView;
@@ -29,7 +34,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        root = new File((Environment.getExternalStorageDirectory()).getAbsolutePath());
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
+            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
+        }
+
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+
+            root = new File((Environment.getExternalStorageDirectory()).getAbsolutePath());
 
         /*
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -37,10 +48,11 @@ public class MainActivity extends AppCompatActivity {
         }
          */
 
-        Log.d(TAG, "onCreate: " + root.getAbsolutePath());
+            Log.d(TAG, "onCreate: " + root.getAbsolutePath());
 
-        ListDirectories(root);
-        buildRecyclerView();
+            ListDirectories(root);
+            buildRecyclerView();
+        }
 
     }
 
@@ -104,6 +116,10 @@ public class MainActivity extends AppCompatActivity {
                 else
                     cardsToBeAdded.add(new DirectoryCard(f.getName(), f.getAbsolutePath(), "na"));
             }
+        }
+
+        else {
+            Toast.makeText(this, "Storage permission required", Toast.LENGTH_LONG).show();
         }
 
         filesList.addAll(pos+1, cardsToBeAdded);
